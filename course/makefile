@@ -1,2 +1,2 @@
 up:
-	clear && g++ main.cpp && ./a.out && rm ./a.out
+	clear && g++ main2.cpp && ./a.out && rm ./a.out

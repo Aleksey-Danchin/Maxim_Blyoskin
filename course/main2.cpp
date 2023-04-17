@@ -1,0 +1,383 @@
+#include <iostream>
+#include <fstream>
+#include <cstring>
+
+#define BASE_FILE_NAME "base.txt"
+
+using namespace std;
+
+class Student {
+    public:
+        char* firstname;
+        char* lastname;
+        char* birthday;
+        char* studentCard;
+        char* groupNumber;
+        int course;
+
+        int counter;
+
+        static int _counter;
+
+        Student () {}
+
+        Student (
+            char* p_firstname,
+            char* p_lastname,
+            char* p_birthday,
+            char* p_studentCard,
+            char* p_groupNumber,
+            int p_course
+        ) {
+            firstname = p_firstname;
+            lastname = p_lastname;
+            birthday = p_birthday;
+            studentCard = p_studentCard;
+            groupNumber = p_groupNumber;
+            course = p_course;
+
+            counter = ++Student::_counter;
+        }
+
+        static Student enter () {
+            char* firstname;
+            cout << "Firstname = ";
+            cin >> firstname;
+
+            char* lastname;
+            cout << "Lastname = ";
+            cin >> lastname;
+
+            char* birthday;
+            cout << "Birthday = ";
+            cin >> birthday;
+
+            char* studentCard;
+            cout << "StudentCard = ";
+            cin >> studentCard;
+
+            char* groupNumber;
+            cout << "GroupNumber = ";
+            cin >> groupNumber;
+
+            int course;
+            cout << "Course = ";
+            cin >> course;
+
+            return Student(
+                firstname,
+                lastname,
+                birthday,
+                studentCard,
+                groupNumber,
+                course
+            );
+        }
+};
+
+int Student::_counter = 0;
+
+class StudentsBase {
+    public:
+        int counter;
+        Student* students;
+
+        int read_file (char* file_name) {
+            ifstream ifile;
+            ifile.open(file_name);
+
+            if (!ifile.is_open()) {
+                return 1;
+            }
+
+            char* firstname;
+            char* lastname;
+            char* birthday;
+            char* studentCard;
+            char* groupNumber;
+            int course;
+
+            int file_counter = 0;
+            while (!ifile.eof()) {
+                firstname = new char[100];
+                lastname = new char[100];
+                birthday = new char[100];
+                studentCard = new char[100];
+                groupNumber = new char[100];
+                course = 0;
+
+                ifile >> firstname;
+                ifile >> lastname;
+                ifile >> birthday;
+                ifile >> studentCard;
+                ifile >> groupNumber;
+                ifile >> course;
+
+                if (
+                    firstname != ""
+                    && lastname != ""
+                    && birthday != ""
+                    && studentCard != ""
+                    && groupNumber != ""
+                    && course != 0
+                ) {
+                    file_counter++;
+                }
+            }
+
+            counter = file_counter;
+            students = new Student[counter];
+
+            ifile.clear();
+            ifile.seekg(0);
+
+            int i = 0;
+            while (!ifile.eof()) {
+                firstname = new char[100];
+                lastname = new char[100];
+                birthday = new char[100];
+                studentCard = new char[100];
+                groupNumber = new char[100];
+                course = 0;
+
+                ifile >> firstname;
+                ifile >> lastname;
+                ifile >> birthday;
+                ifile >> studentCard;
+                ifile >> groupNumber;
+                ifile >> course;
+
+                if (
+                    firstname != ""
+                    && lastname != ""
+                    && birthday != ""
+                    && studentCard != ""
+                    && groupNumber != ""
+                    && course != 0
+                ) {
+                    Student student = Student(
+                        firstname,
+                        lastname,
+                        birthday,
+                        studentCard,
+                        groupNumber,
+                        course
+                    );
+                    
+                    students[i++] = student;
+                }
+            }
+
+            ifile.close();
+            return 0;
+        }
+
+        int write_to_file (char* file_name) {
+            ofstream ofile;
+            ofile.open(file_name);
+
+            if (!ofile.is_open()) {
+                return 1;
+            }
+
+            for (int i = 0; i < counter; i++) {
+                ofile << students[i].firstname << " ";
+                ofile << students[i].lastname << " ";
+                ofile << students[i].birthday << " ";
+                ofile << students[i].studentCard << " ";
+                ofile << students[i].groupNumber << " ";
+                ofile << students[i].course << endl;
+            }
+
+            ofile.close();
+            return 0;
+        }
+
+        void add (Student new_student) {
+            Student* next_students = new Student[counter + 1];
+
+            for (int i = 0; i < counter; i++) {
+                next_students[i] = students[i];
+            }
+
+            next_students[counter] = new_student;
+
+            counter += 1;
+            this->students = next_students;
+        }
+
+        void search_and_print (char* str) {
+            int search_counter = 0;
+
+            for (int i = 0; i < counter; i++) {
+                if (students[i].firstname == str || students[i].lastname == str) {
+                    search_counter++;
+                }
+            }
+
+            if (!search_counter) {
+                cout << "Not founded." << endl;
+                return;
+            }
+
+            StudentsBase search_base = StudentsBase();
+            search_base.counter = search_counter;
+            search_base.students = new Student[search_counter];
+
+            int j = 0;
+            for (int i = 0; i < counter; i++) {
+                if (students[i].firstname == str || students[i].lastname == str) {
+                    search_base.students[j++] = students[i];
+                }
+            }
+
+            search_base.print();
+        }
+
+        void sort_by_firstname () {
+            for (int i = 0; i < counter - 1; i++) {
+                for (int j = i + 1; j < counter; j++) {
+                    if (strcmp(students[i].firstname, students[j].firstname) > 0) {
+                        Student a = students[i];
+                        students[i] = students[j];
+                        students[j] = a;
+                    }
+                }
+            }
+        }
+
+        void sort_by_lastname () {
+            for (int i = 0; i < counter - 1; i++) {
+                for (int j = i + 1; j < counter; j++) {
+                    if (strcmp(students[i].lastname, students[j].lastname) > 0) {
+                        Student a = students[i];
+                        students[i] = students[j];
+                        students[j] = a;
+                    }
+                }
+            }
+        }
+
+        void sort_by_course () {
+            for (int i = 0; i < counter - 1; i++) {
+                for (int j = i + 1; j < counter; j++) {
+                    if (students[i].course > students[j].course) {
+                        Student a = students[i];
+                        students[i] = students[j];
+                        students[j] = a;
+                    }
+                }
+            }
+        }
+
+        void print () {
+            if (counter == 0) {
+                cout << "Base is empty." << endl;
+                return;
+            }
+
+            cout << "| Firstname | LstName | Birthday | StudentID | Group | Course | Counter |" << endl;
+            cout << "|-----------|---------|----------|-----------|-------|--------|---------|" << endl;
+
+            for (int i = 0; i < counter; i++) {
+                cout << "| ";
+                cout << students[i].firstname << " | ";
+                cout << students[i].lastname << " | ";
+                cout << students[i].birthday << " | ";
+                cout << students[i].studentCard << " | ";
+                cout << students[i].groupNumber << " | ";
+                cout << students[i].course << " | ";
+                cout << students[i].counter << " |";
+                cout << endl;
+            }
+        }
+};
+
+int get_menu_option () {
+    int n;
+
+    while (true) {
+        cout << endl;
+        cout << "1) Add studnet" << endl;
+        cout << "2) Print students base" << endl;
+        cout << "3) Search by firstname or secondname" << endl;
+        cout << "4) Sort by firstname" <<  endl;
+        cout << "5) Sort by lastname" << endl;
+        cout << "6) Sort by course" << endl;
+        cout << "7) Save base" << endl;
+        cout << "8) Save base and exit." << endl;
+
+        cout << ">> ";
+        cin >> n;
+
+        if (1 <= n && n <= 8) {
+            return n;
+        }
+
+        cout << "Command not recognize. Try again." << endl;
+
+        cin.clear();
+        cin.ignore(10, '\n');
+    }
+}
+
+int main () {
+    StudentsBase base = StudentsBase();
+
+    if (base.read_file(BASE_FILE_NAME) != 0) {
+        cout << "Can't read file" << endl;
+        return 1;
+    }
+
+    int command = 0;
+
+    while (command != 8) {
+        command = get_menu_option();
+
+        if (command == 1) {
+            Student student = Student::enter();
+            base.add(student);
+            cout << "Studen added." << endl;
+        }
+
+        if (command == 2) {
+            base.print();
+        }
+
+        if (command == 3) {
+            cout << "Enter firstname or lastname >> ";
+            char* str;
+            cin >> str;
+
+            base.search_and_print(str);
+        }
+
+        if (command == 4) {
+            base.sort_by_firstname();
+            base.print();
+        }
+
+        if (command == 5) {
+            base.sort_by_lastname();
+            base.print();
+        }
+
+        if (command == 6) {
+            base.sort_by_course();
+            base.print();
+        }
+
+        if (command == 7 || command == 8) {
+            if (base.write_to_file(BASE_FILE_NAME) != 0) {
+                cout << "Can't write file" << endl;
+            } else {
+                cout << "Database booked." << endl;
+            }
+
+            if (command == 8) {
+                cout << "Goodbye!" << endl;
+                return 0;
+            }
+        }
+    }    
+}
