@@ -6,6 +6,7 @@
 
 using namespace std;
 
+// Класс Студент
 class Student {
     public:
         char* firstname;
@@ -15,14 +16,16 @@ class Student {
         char* groupNumber;
         int course;
 
-        int counter;
+        int counter; // Счетчик объектов класса
 
-        static int _counter;
+        static int _counter; // Статический счетчик объектов класса
 
+        // Конструктор без параметров для динамического массива
         Student () {}
 
+        // Конструктор с параметрами для экземпляров
         Student (
-            char* p_firstname,
+            char* p_firstname, // property_firstname
             char* p_lastname,
             char* p_birthday,
             char* p_studentCard,
@@ -39,24 +42,25 @@ class Student {
             counter = ++Student::_counter;
         }
 
+        // Статический метод для ручного создания пользователя
         static Student enter () {
-            char* firstname;
+            char* firstname = new char[20];
             cout << "Firstname = ";
             cin >> firstname;
 
-            char* lastname;
+            char* lastname = new char[20];
             cout << "Lastname = ";
             cin >> lastname;
 
-            char* birthday;
+            char* birthday = new char[20];
             cout << "Birthday = ";
             cin >> birthday;
 
-            char* studentCard;
+            char* studentCard = new char[20];
             cout << "StudentCard = ";
             cin >> studentCard;
 
-            char* groupNumber;
+            char* groupNumber = new char[20];
             cout << "GroupNumber = ";
             cin >> groupNumber;
 
@@ -75,18 +79,21 @@ class Student {
         }
 };
 
+// Инициализация статического счетчика
 int Student::_counter = 0;
 
+// Класс база студенотов
 class StudentsBase {
     public:
-        int counter;
-        Student* students;
+        int counter; // Счетчик студентов в базе данных
+        Student* students; // Динамический массив стедентов базы
 
+        // Читаем файл студентов
         int read_file (char* file_name) {
-            ifstream ifile;
-            ifile.open(file_name);
+            ifstream file;
+            file.open(file_name);
 
-            if (!ifile.is_open()) {
+            if (!file.is_open()) {
                 return 1;
             }
 
@@ -97,8 +104,9 @@ class StudentsBase {
             char* groupNumber;
             int course;
 
+            // Считаем количество записей в файле
             int file_counter = 0;
-            while (!ifile.eof()) {
+            while (!file.eof()) {
                 firstname = new char[100];
                 lastname = new char[100];
                 birthday = new char[100];
@@ -106,12 +114,12 @@ class StudentsBase {
                 groupNumber = new char[100];
                 course = 0;
 
-                ifile >> firstname;
-                ifile >> lastname;
-                ifile >> birthday;
-                ifile >> studentCard;
-                ifile >> groupNumber;
-                ifile >> course;
+                file >> firstname;
+                file >> lastname;
+                file >> birthday;
+                file >> studentCard;
+                file >> groupNumber;
+                file >> course;
 
                 if (
                     firstname != ""
@@ -125,14 +133,18 @@ class StudentsBase {
                 }
             }
 
+            // Инициализируем данные экземпляра
             counter = file_counter;
             students = new Student[counter];
 
-            ifile.clear();
-            ifile.seekg(0);
+            // Возвращаем коретку в начало файла
+            // чтобы заново его прочитать
+            file.clear();
+            file.seekg(0);
 
+            // Создаем студентов и записываем в базу данных
             int i = 0;
-            while (!ifile.eof()) {
+            while (!file.eof()) {
                 firstname = new char[100];
                 lastname = new char[100];
                 birthday = new char[100];
@@ -140,12 +152,12 @@ class StudentsBase {
                 groupNumber = new char[100];
                 course = 0;
 
-                ifile >> firstname;
-                ifile >> lastname;
-                ifile >> birthday;
-                ifile >> studentCard;
-                ifile >> groupNumber;
-                ifile >> course;
+                file >> firstname;
+                file >> lastname;
+                file >> birthday;
+                file >> studentCard;
+                file >> groupNumber;
+                file >> course;
 
                 if (
                     firstname != ""
@@ -164,35 +176,38 @@ class StudentsBase {
                         course
                     );
                     
-                    students[i++] = student;
+                    students[i] = student;
+                    i++;
                 }
             }
 
-            ifile.close();
+            file.close();
             return 0;
         }
 
-        int write_to_file (char* file_name) {
-            ofstream ofile;
-            ofile.open(file_name);
+        // Записываем файл студентов
+        int write_file (char* file_name) {
+            ofstream file;
+            file.open(file_name);
 
-            if (!ofile.is_open()) {
+            if (!file.is_open()) {
                 return 1;
             }
 
             for (int i = 0; i < counter; i++) {
-                ofile << students[i].firstname << " ";
-                ofile << students[i].lastname << " ";
-                ofile << students[i].birthday << " ";
-                ofile << students[i].studentCard << " ";
-                ofile << students[i].groupNumber << " ";
-                ofile << students[i].course << endl;
+                file << students[i].firstname << " ";
+                file << students[i].lastname << " ";
+                file << students[i].birthday << " ";
+                file << students[i].studentCard << " ";
+                file << students[i].groupNumber << " ";
+                file << students[i].course << endl;
             }
 
-            ofile.close();
+            file.close();
             return 0;
         }
 
+        // Добавляем студента в базу
         void add (Student new_student) {
             Student* next_students = new Student[counter + 1];
 
@@ -203,37 +218,43 @@ class StudentsBase {
             next_students[counter] = new_student;
 
             counter += 1;
-            this->students = next_students;
+            students = next_students;
         }
 
+        // Поиск по имени или фамилии и вывод
         void search_and_print (char* str) {
             int search_counter = 0;
 
             for (int i = 0; i < counter; i++) {
-                if (students[i].firstname == str || students[i].lastname == str) {
+                if (strcmp(students[i].firstname, str) == 0 || strcmp(students[i].lastname, str) == 0) {
                     search_counter++;
                 }
             }
 
-            if (!search_counter) {
+            if (search_counter == 0) {
                 cout << "Not founded." << endl;
                 return;
             }
 
-            StudentsBase search_base = StudentsBase();
-            search_base.counter = search_counter;
-            search_base.students = new Student[search_counter];
+            cout << "| Firstname | LstName | Birthday | StudentID | Group | Course | Counter |" << endl;
+            cout << "|-----------|---------|----------|-----------|-------|--------|---------|" << endl;
 
-            int j = 0;
             for (int i = 0; i < counter; i++) {
-                if (students[i].firstname == str || students[i].lastname == str) {
-                    search_base.students[j++] = students[i];
+                if (strcmp(students[i].firstname, str) == 0 || strcmp(students[i].lastname, str) == 0) {
+                    cout << "| ";
+                    cout << students[i].firstname << " | ";
+                    cout << students[i].lastname << " | ";
+                    cout << students[i].birthday << " | ";
+                    cout << students[i].studentCard << " | ";
+                    cout << students[i].groupNumber << " | ";
+                    cout << students[i].course << " | ";
+                    cout << students[i].counter << " |";
+                    cout << endl;
                 }
             }
-
-            search_base.print();
         }
 
+        // Сортировка по имени
         void sort_by_firstname () {
             for (int i = 0; i < counter - 1; i++) {
                 for (int j = i + 1; j < counter; j++) {
@@ -246,6 +267,7 @@ class StudentsBase {
             }
         }
 
+        // Сортировка по фамилии
         void sort_by_lastname () {
             for (int i = 0; i < counter - 1; i++) {
                 for (int j = i + 1; j < counter; j++) {
@@ -258,6 +280,7 @@ class StudentsBase {
             }
         }
 
+        // Сортировка по курсу
         void sort_by_course () {
             for (int i = 0; i < counter - 1; i++) {
                 for (int j = i + 1; j < counter; j++) {
@@ -270,6 +293,7 @@ class StudentsBase {
             }
         }
 
+        // Распечатать базу данных студентов
         void print () {
             if (counter == 0) {
                 cout << "Base is empty." << endl;
@@ -293,6 +317,7 @@ class StudentsBase {
         }
 };
 
+// Вывод меню
 int get_menu_option () {
     int n;
 
@@ -316,6 +341,7 @@ int get_menu_option () {
 
         cout << "Command not recognize. Try again." << endl;
 
+        // Очистка кеша
         cin.clear();
         cin.ignore(10, '\n');
     }
@@ -324,6 +350,7 @@ int get_menu_option () {
 int main () {
     StudentsBase base = StudentsBase();
 
+    // Если не смогли прочитать файл, то конец программы
     if (base.read_file(BASE_FILE_NAME) != 0) {
         cout << "Can't read file" << endl;
         return 1;
@@ -346,7 +373,7 @@ int main () {
 
         if (command == 3) {
             cout << "Enter firstname or lastname >> ";
-            char* str;
+            char* str = new char[20];
             cin >> str;
 
             base.search_and_print(str);
@@ -368,7 +395,7 @@ int main () {
         }
 
         if (command == 7 || command == 8) {
-            if (base.write_to_file(BASE_FILE_NAME) != 0) {
+            if (base.write_file(BASE_FILE_NAME) != 0) {
                 cout << "Can't write file" << endl;
             } else {
                 cout << "Database booked." << endl;
@@ -379,5 +406,5 @@ int main () {
                 return 0;
             }
         }
-    }    
+    }
 }
